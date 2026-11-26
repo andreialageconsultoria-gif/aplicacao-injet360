@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicação · Mentoria INJET 360</title>
+<meta name="description" content="Aplicação para a Mentoria INJET 360 com a Dra. Maria Cláudia Rosenbaum.">
+<meta property="og:title" content="Aplicação · Mentoria INJET 360">
+<meta property="og:description" content="Aplicação para a Mentoria INJET 360 com a Dra. Maria Cláudia Rosenbaum. Vagas limitadas.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1B0A10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B0A10; --bg2:#240E16; --wine:#591B27; --wine2:#7A2438;
+    --cream:#F9F6F1; --rose:#C69A9B; --muted:rgba(249,246,241,.55);
+    --line:rgba(249,246,241,.14); --err:#E8837F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--cream);font-family:'Hanken Grotesk',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+  /* decorative arcs */
+  .arcs{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .arcs span{position:absolute;border:1px solid rgba(249,246,241,.05);border-radius:50%}
+  .arcs span:nth-child(1){width:900px;height:900px;left:-420px;top:-300px}
+  .arcs span:nth-child(2){width:1100px;height:1100px;right:-600px;top:-200px}
+  .arcs span:nth-child(3){width:700px;height:700px;right:-250px;bottom:-420px;border-color:rgba(198,154,155,.10)}
+  /* progress */
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(249,246,241,.08);z-index:20;opacity:0;transition:opacity .4s}
+  .progress.show{opacity:1}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--wine2),var(--rose));transition:width .5s ease}
+  .topbar{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+    padding:22px 32px;z-index:15;opacity:0;transition:opacity .4s}
+  .topbar.show{opacity:1}
+  .topbar img{height:46px}
+  .topbar .count{font-size:13px;color:var(--muted);letter-spacing:.08em}
+  main{position:relative;z-index:5;height:100%;height:100dvh}
+  .step{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:96px 24px 110px;
+    opacity:0;visibility:hidden;transform:translateY(30px);transition:opacity .45s ease,transform .45s ease,visibility .45s}
+  .step.active{opacity:1;visibility:visible;transform:none}
+  .step.up{transform:translateY(-30px)}
+  .inner{width:100%;max-width:680px}
+  /* welcome */
+  .welcome{padding:0;overflow:hidden}
+  .ribbons{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .ribbon{position:absolute;left:-10%;width:120%;background:var(--cream);color:var(--wine);white-space:nowrap;overflow:hidden;
+    font-weight:500;font-size:clamp(14px,1.9vw,22px);letter-spacing:.02em;padding:9px 0;text-transform:uppercase;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .ribbon div{display:inline-block;animation:marq 40s linear infinite}
+  .ribbon.r1{top:10px;transform:rotate(-3deg)}
+  .ribbon.r2{bottom:70px;transform:rotate(3deg);opacity:.9}
+  .ribbon.r2 div{animation-direction:reverse}
+  @keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .welcome .glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 30% 50%,rgba(122,36,56,.55),transparent 70%),
+    radial-gradient(ellipse 50% 50% at 90% 80%,rgba(89,27,39,.5),transparent 70%)}
+  .welcome .inner{position:relative;max-width:760px;padding:80px 24px 130px;text-align:left}
+  .welcome .logo{width:min(260px,52vw);display:block;margin-bottom:30px}
+  .welcome h1{font-weight:400;font-size:clamp(30px,4.6vw,50px);line-height:1.12;letter-spacing:-.015em;margin-bottom:22px}
+  .welcome p.lead{font-size:clamp(16px,1.7vw,19px);color:var(--muted);line-height:1.55;max-width:560px;margin-bottom:34px}
+  .welcome p.lead strong{color:var(--cream);font-weight:500}
+  .meta{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  /* question */
+  .qnum{display:flex;align-items:center;gap:10px;color:var(--rose);font-size:14px;letter-spacing:.12em;margin-bottom:14px}
+  .qnum::after{content:"";height:1px;width:40px;background:var(--rose);opacity:.5}
+  .step h2{font-weight:400;font-size:clamp(24px,3.4vw,36px);line-height:1.22;letter-spacing:-.01em;margin-bottom:10px}
+  .hint{color:var(--muted);font-size:16px;margin-bottom:28px;line-height:1.5}
+  .field{width:100%;background:transparent;border:0;border-bottom:1.5px solid var(--line);color:var(--cream);
+    font:inherit;font-size:clamp(20px,2.6vw,28px);font-weight:300;padding:10px 2px 12px;outline:none;transition:border-color .25s}
+  .field::placeholder{color:rgba(249,246,241,.25)}
+  .field:focus{border-color:var(--rose)}
+  textarea.field{resize:none;min-height:56px;line-height:1.4;overflow:hidden}
+  .options{display:flex;flex-direction:column;gap:10px;max-width:520px}
+  .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:rgba(249,246,241,.04);
+    border:1px solid var(--line);color:var(--cream);font:inherit;font-size:18px;padding:14px 16px;border-radius:10px;cursor:pointer;
+    transition:background .2s,border-color .2s,transform .15s}
+  .opt:hover{background:rgba(198,154,155,.10);border-color:rgba(198,154,155,.5)}
+  .opt kbd{flex:none;width:26px;height:26px;display:grid;place-items:center;border:1px solid rgba(198,154,155,.55);border-radius:6px;
+    font:600 12px 'Hanken Grotesk',sans-serif;color:var(--rose)}
+  .opt.sel{background:rgba(198,154,155,.18);border-color:var(--rose)}
+  .opt.sel kbd{background:var(--rose);color:var(--bg);border-color:var(--rose)}
+  .opt.blink{animation:blink .35s}
+  @keyframes blink{50%{opacity:.4}}
+  .other{margin-top:12px;display:none}
+  .other.show{display:block}
+  .other .field{font-size:20px}
+  .actions{display:flex;align-items:center;gap:16px;margin-top:30px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:10px;background:var(--cream);color:var(--bg);border:0;border-radius:999px;
+    font:600 16px 'Hanken Grotesk',sans-serif;padding:14px 28px;cursor:pointer;transition:transform .15s,background .2s}
+  .btn:hover{background:#fff;transform:translateY(-1px)}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .btn.big{font-size:17px;padding:17px 34px}
+  .btn svg{width:18px;height:18px}
+  .press{font-size:13px;color:var(--muted)}
+  .press b{font-weight:600;color:var(--cream)}
+  .error{color:var(--err);font-size:14px;margin-top:12px;min-height:18px}
+  .consent{display:flex;gap:14px;align-items:flex-start;cursor:pointer;font-size:15px;line-height:1.55;color:var(--muted);max-width:600px}
+  .consent input{appearance:none;flex:none;width:22px;height:22px;border:1.5px solid var(--rose);border-radius:5px;margin-top:2px;cursor:pointer;display:grid;place-items:center}
+  .consent input:checked{background:var(--rose)}
+  .consent input:checked::after{content:"";width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  /* nav */
+  .nav{position:fixed;right:28px;bottom:74px;display:flex;gap:6px;z-index:15;opacity:0;transition:opacity .4s}
+  .nav.show{opacity:1}
+  .nav button{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:rgba(249,246,241,.05);color:var(--cream);cursor:pointer;display:grid;place-items:center}
+  .nav button:hover{background:rgba(198,154,155,.15)}
+  .nav svg{width:18px;height:18px}
+  footer{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid var(--line);background:rgba(27,10,16,.92);backdrop-filter:blur(6px);padding:12px 32px;font-size:12px;color:var(--muted)}
+  footer .who b{display:block;color:var(--cream);font-weight:500;font-size:13px}
+  footer .who small{text-transform:uppercase;letter-spacing:.08em;font-size:10px}
+  footer .brand{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--cream);letter-spacing:.06em}
+  footer .brand em{font-style:normal;color:var(--rose)}
+  /* final */
+  .done{text-align:center}
+  .done .seal{width:84px;height:84px;border-radius:50%;border:1.5px solid var(--rose);display:grid;place-items:center;margin:0 auto 28px;color:var(--rose)}
+  .done .seal svg{width:36px;height:36px}
+  .done h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,5vw,52px);margin-bottom:16px}
+  .done p{color:var(--muted);font-size:18px;line-height:1.6;max-width:520px;margin:0 auto}
+  @media (max-width:640px){
+    .topbar{padding:16px 18px}.topbar img{height:36px}
+    .welcome .inner{padding:70px 22px 130px}.welcome .logo{margin-bottom:22px}
+    footer{padding:10px 16px}footer .brand{display:none}
+    .nav{right:16px;bottom:66px}
+    .step{padding:80px 20px 120px;align-items:flex-start;padding-top:18vh}
+    .welcome{align-items:center;padding-top:0}
+    .opt{font-size:16px;padding:13px 14px}
+    .press{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){.ribbon div{animation:none}.step{transition:opacity .2s}}
+  .lg{display:inline-flex;flex-direction:column;align-items:flex-start;font-family:'Cormorant Garamond',Georgia,serif;color:var(--cream);line-height:1}
+  .lg .row{display:flex;align-items:center}
+  .lg .inj{font-size:64px;font-weight:500;letter-spacing:.02em}
+  .lg .c{width:78px;height:78px;border:2px solid var(--cream);border-radius:50%;display:grid;place-items:center;margin-left:-14px;
+    color:var(--rose);font-size:30px}
+  .lg .exp{font-family:'Hanken Grotesk',sans-serif;font-size:13px;letter-spacing:.55em;color:var(--rose);margin-top:4px;padding-left:4px}
+  .lg.sm .inj{font-size:22px}.lg.sm .c{width:28px;height:28px;font-size:11px;border-width:1px;margin-left:-5px}.lg.sm .exp{display:none}
+  .welcome .lg{margin-bottom:30px}
+  @media (max-width:640px){.welcome .lg .inj{font-size:48px}.welcome .lg .c{width:60px;height:60px;font-size:23px}}
+</style>
+</head>
+<body>
+<div class="arcs"><span></span><span></span><span></span></div>
+<div class="progress" id="progress"><i></i></div>
+<div class="topbar" id="topbar"><div class="lg sm"><div class="row"><span class="inj">INJET</span><span class="c">360</span></div></div><span class="count" id="count"></span></div>
+<main id="form"></main>
+<div class="nav" id="nav">
+  <button type="button" id="prevBtn" aria-label="Voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></button>
+  <button type="button" id="nextBtn" aria-label="Avançar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+</div>
+<footer>
+  <div class="who"><b>@dra.mariaclaudiarosenbaum</b><small>Especialista em Clínica Médica</small></div>
+  <div class="brand">INJET<em>360</em> &nbsp;+&nbsp; Maria Cláudia Rosenbaum</div>
+</footer>
+<script>
+const ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const QUESTIONS = [
+  {id:'nome', type:'text', title:'Para começar, qual é o seu nome completo?', ph:'Digite seu nome', ac:'name'},
+  {id:'telefone', type:'tel', title:'Qual é o seu WhatsApp, {first}?', hint:'Com DDD. É por aqui que a equipe fará contato.', ph:'(00) 00000-0000'},
+  {id:'email', type:'email', title:'E o seu melhor e-mail?', ph:'nome@email.com', ac:'email'},
+  {id:'crm', type:'text', title:'Qual é o seu CRM?', hint:'Informe o número e o estado. Ex.: 123456/SP', ph:'000000/UF'},
+  {id:'especialidade', type:'textarea', title:'Qual é a sua especialidade e/ou a principal patologia que você trata?', ph:'Escreva aqui...'},
+  {id:'cidade', type:'text', title:'Em qual cidade você atua?', ph:'Cidade / UF'},
+  {id:'origem', type:'choice', title:'Onde você conheceu a Dra. Maria Cláudia?',
+    options:['Instagram','INJET 360 Experience (evento)','Indicação de colega','Congresso ou curso','Outro'], other:'Outro'},
+  {id:'injetaveis', type:'choice', title:'Você já trabalha com terapias nutricionais injetáveis?', options:['Sim','Não']},
+  {id:'vias', type:'choice', title:'Por quais vias você trabalha hoje?', options:['EV (endovenosa)','IM (intramuscular)','Todas as vias'],
+    when: a => a.injetaveis === 'Sim'},
+  {id:'equipe', type:'choice', title:'Quantas pessoas tem na sua equipe?', options:['1 a 2','3 a 5','Acima de 5']},
+  {id:'faturamento_atual', type:'choice', title:'Qual é o seu faturamento médio mensal hoje?',
+    hint:'Essa informação é confidencial e nos ajuda a personalizar a mentoria.',
+    options:['Até R$ 30 mil','De R$ 30 mil a R$ 50 mil','De R$ 50 mil a R$ 100 mil','De R$ 100 mil a R$ 200 mil','Acima de R$ 200 mil']},
+  {id:'objetivo', type:'textarea', title:'O que você almeja fazendo parte da Mentoria INJET 360?', hint:'Conte com suas palavras. Quanto mais sincera a resposta, melhor.', ph:'Escreva aqui...'},
+  {id:'faturamento_meta', type:'choice', title:'Qual faturamento mensal você deseja alcançar no próximo ano?',
+    options:['Até R$ 50 mil','De R$ 50 mil a R$ 100 mil','De R$ 100 mil a R$ 200 mil','De R$ 200 mil a R$ 500 mil','Acima de R$ 500 mil']},
+  {id:'inicio', type:'choice', title:'Quando você deseja iniciar a mentoria e aumentar sua segurança e seu faturamento?',
+    options:['Imediatamente','Nos próximos 30 dias','Em até 3 meses','Ainda estou avaliando']},
+  {id:'consent', type:'consent', title:'Última etapa, {first}.', hint:'Revise e envie sua aplicação. A equipe da Dra. Maria Cláudia analisará suas respostas.'}
+];
+const API_URL = 'https://script.google.com/macros/s/AKfycbygE3IrnH3wSBQzGyc8zo-yw4Pu5uCGsT5rfHXzo6mxie6hkMXowIE-FcXnZgxHwXgB/exec';
+let enviando = false;
+const answers = {};
+const form = document.getElementById('form');
+let steps = [];   // DOM nodes: welcome + questions + done
+let cur = 0;
+const LETTERS = 'ABCDEFGH';
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function firstName(){return (answers.nome||'').trim().split(/\s+/)[0]||''}
+function fill(t){const f=firstName();return t.replace(', {first}',f?', '+f:'').replace(' {first}',f?' '+f:'').replace('{first}',f)}
+function build(){
+  const ribbonTxt = ('MENTORIA EM INJETÁVEIS - INJET 360 &nbsp;✦&nbsp; ').repeat(8);
+  let html = `
+  <section class="step welcome active" data-kind="welcome">
+    <div class="glow"></div>
+    <div class="ribbons">
+      <div class="ribbon r1"><div>${ribbonTxt}${ribbonTxt}</div></div>
+      <div class="ribbon r2"><div>${ribbonTxt}${ribbonTxt}</div></div>
+    </div>
+    <div class="inner">
+      <div class="lg"><div class="row"><span class="inj">INJET</span><span class="c">360</span></div><span class="exp">EXPERIENCE</span></div>
+      <h1>Se eu tirar os seus protocolos da mesa, você ainda sabe decidir?</h1>
+      <p class="lead">Aplicação para a <strong>Mentoria INJET 360</strong> com a <strong>Dra. Maria Cláudia Rosenbaum</strong>. Autonomia clínica, segurança e crescimento com terapias injetáveis.</p>
+      <button class="btn big" type="button" data-go="next">Iniciar aplicação ${ICON_ARROW}</button>
+      <div class="meta">Leva cerca de 3 minutos · Vagas limitadas</div>
+    </div>
+  </section>`;
+  QUESTIONS.forEach((q,i)=>{
+    html += `<section class="step" data-kind="q" data-id="${q.id}"><div class="inner">
+      <div class="qnum"><span class="n"></span></div>
+      <h2 data-t="${esc(q.title)}"></h2>
+      ${q.hint?`<p class="hint">${esc(q.hint)}</p>`:'<div style="height:18px"></div>'}`;
+    if(q.type==='choice'){
+      html += `<div class="options">` + q.options.map((o,k)=>
+        `<button type="button" class="opt" data-val="${esc(o)}"><kbd>${LETTERS[k]}</kbd>${esc(o)}</button>`).join('') + `</div>`;
+      if(q.other) html += `<div class="other"><input class="field" type="text" placeholder="Conte onde..." data-other></div>`;
+    } else if(q.type==='textarea'){
+      html += `<textarea class="field" rows="1" placeholder="${esc(q.ph||'')}"></textarea>`;
+    } else if(q.type==='consent'){
+      html += `<label class="consent"><input type="checkbox" id="lgpd"><span>Autorizo o uso dos meus dados para análise desta aplicação e contato da equipe, conforme a Lei Geral de Proteção de Dados (LGPD). Meus dados não serão compartilhados com terceiros.</span></label>`;
+    } else {
+      const it = q.type==='tel'?'tel':(q.type==='email'?'email':'text');
+      html += `<input class="field" type="${it}" placeholder="${esc(q.ph||'')}" ${q.ac?`autocomplete="${q.ac}"`:''} ${q.type==='tel'?'inputmode="numeric"':''}>`;
+    }
+    const last = q.type==='consent';
+    html += `<div class="error"></div>
+      <div class="actions">
+        <button class="btn ${last?'big':''}" type="button" data-go="next">${last?'Enviar aplicação':'OK'} ${ICON_ARROW}</button>
+        ${last||q.type==='choice'?'':'<span class="press">pressione <b>Enter ↵</b></span>'}
+      </div></div></section>`;
+  });
+  html += `<section class="step done" data-kind="done"><div class="inner">
+    <div class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>Aplicação recebida.</h2>
+    <p id="doneMsg">Obrigada! A equipe da Dra. Maria Cláudia Rosenbaum vai analisar suas respostas e entrará em contato pelo WhatsApp informado.</p>
+  </div></section>`;
+  form.innerHTML = html;
+  steps = [...form.querySelectorAll('.step')];
+  bind();
+}
+function visibleQs(){return QUESTIONS.filter(q=>!q.when||q.when(answers))}
+function qOf(step){return QUESTIONS.find(q=>q.id===step.dataset.id)}
+function stepVisible(idx){
+  const s=steps[idx]; if(s.dataset.kind!=='q') return true;
+  const q=qOf(s); return !q.when||q.when(answers);
+}
+function show(idx, dir=1){
+  const old=steps[cur];
+  old.classList.remove('active'); old.classList.toggle('up',dir>0);
+  const s=steps[idx]; s.classList.remove('up');
+  cur=idx;
+  if(s.dataset.kind==='q'){
+    const q=qOf(s), vis=visibleQs(), pos=vis.indexOf(q)+1;
+    s.querySelector('.n').textContent=String(pos).padStart(2,'0')+' / '+String(vis.length).padStart(2,'0');
+    s.querySelector('h2').textContent=fill(q.title);
+    document.getElementById('count').textContent='';
+    document.querySelector('#progress i').style.width=((pos-1)/vis.length*100)+'%';
+  }
+  const inQ=s.dataset.kind==='q';
+  ['progress','topbar','nav'].forEach(id=>document.getElementById(id).classList.toggle('show',inQ));
+  if(s.dataset.kind==='done') document.querySelector('#progress i').style.width='100%';
+  requestAnimationFrame(()=>s.classList.add('active'));
+  setTimeout(()=>{const f=s.querySelector('input.field,textarea.field'); if(f && !f.closest('.other')) f.focus({preventScroll:true});},420);
+}
+function next(){
+  const s=steps[cur];
+  if(s.dataset.kind==='q'){ if(!validate(s)) return; }
+  if(s.dataset.kind==='q' && qOf(s).type==='consent'){ submit(); return; }
+  let n=cur+1; while(n<steps.length-1 && !stepVisible(n)) n++;
+  if(n<steps.length-1) show(n,1);
+}
+function prev(){
+  let n=cur-1; while(n>0 && !stepVisible(n)) n--;
+  if(n>=0 && n!==cur) show(n,-1);
+}
+function setErr(s,msg){s.querySelector('.error').textContent=msg||''}
+function validate(s){
+  const q=qOf(s); setErr(s,'');
+  if(q.type==='choice'){
+    if(!answers[q.id]){setErr(s,'Selecione uma opção para continuar.');return false}
+    if(q.other && answers[q.id]===q.other){
+      const v=s.querySelector('[data-other]').value.trim();
+      if(!v){setErr(s,'Conte onde você conheceu a Dra. Maria Cláudia.');s.querySelector('[data-other]').focus();return false}
+      answers[q.id+'_outro']=v;
+    }
+    return true;
+  }
+  if(q.type==='consent'){
+    if(!document.getElementById('lgpd').checked){setErr(s,'Para enviar, é necessário autorizar o uso dos dados.');return false}
+    return true;
+  }
+  const f=s.querySelector('.field'); const v=f.value.trim();
+  if(!v){setErr(s,'Este campo é obrigatório.');f.focus();return false}
+  if(q.id==='nome' && v.split(/\s+/).length<2){setErr(s,'Por favor, informe nome e sobrenome.');return false}
+  if(q.type==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){setErr(s,'Informe um e-mail válido.');return false}
+  if(q.type==='tel' && v.replace(/\D/g,'').length<10){setErr(s,'Informe o número com DDD.');return false}
+  if(q.id==='crm' && !/\d{3,}/.test(v)){setErr(s,'Informe o número do CRM com o estado.');return false}
+  answers[q.id]=v; return true;
+}
+function maskPhone(v){
+  const d=v.replace(/\D/g,'').slice(0,11);
+  if(d.length<=2) return d.length?'('+d:'';
+  if(d.length<=6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if(d.length<=10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+}
+function pick(s,btn){
+  const q=qOf(s);
+  s.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel','blink'); setTimeout(()=>btn.classList.remove('blink'),360);
+  answers[q.id]=btn.dataset.val; setErr(s,'');
+  if(q.id==='injetaveis' && answers.injetaveis!=='Sim') delete answers.vias;
+  const other=s.querySelector('.other');
+  if(other){
+    const isOther=btn.dataset.val===q.other;
+    other.classList.toggle('show',isOther);
+    if(isOther){setTimeout(()=>other.querySelector('input').focus(),50);return}
+    delete answers[q.id+'_outro'];
+  }
+  setTimeout(next,420);
+}
+function bind(){
+  form.addEventListener('click',e=>{
+    const go=e.target.closest('[data-go]'); if(go){next();return}
+    const opt=e.target.closest('.opt'); if(opt) pick(opt.closest('.step'),opt);
+  });
+  form.querySelectorAll('input[type=tel]').forEach(i=>i.addEventListener('input',()=>{i.value=maskPhone(i.value)}));
+  form.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',()=>{t.style.height='auto';t.style.height=t.scrollHeight+'px'}));
+  document.getElementById('prevBtn').onclick=prev;
+  document.getElementById('nextBtn').onclick=next;
+  document.addEventListener('keydown',e=>{
+    const s=steps[cur]; if(s.dataset.kind==='done') return;
+    if(e.key==='Enter'){
+      if(e.target.tagName==='TEXTAREA' && e.shiftKey) return;
+      if(e.target.tagName==='BUTTON' && e.target.classList.contains('opt')) return;
+      e.preventDefault(); next(); return;
+    }
+    if(s.dataset.kind==='q' && qOf(s).type==='choice' && !/INPUT|TEXTAREA/.test(e.target.tagName) && !e.ctrlKey && !e.metaKey){
+      const k=LETTERS.indexOf(e.key.toUpperCase()); const opts=s.querySelectorAll('.opt');
+      if(k>=0 && k<opts.length) pick(s,opts[k]);
+    }
+  });
+}
+async function submit(){
+  if(enviando) return; enviando=true;
+  const s=steps[cur]; const btn=s.querySelector('[data-go]');
+  btn.disabled=true; btn.innerHTML='Enviando...';
+  const payload={
+    data_envio:new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+    nome:answers.nome, telefone:answers.telefone, email:answers.email, crm:answers.crm,
+    especialidade:answers.especialidade, cidade:answers.cidade,
+    origem: answers.origem==='Outro' ? 'Outro: '+(answers.origem_outro||'') : answers.origem,
+    injetaveis:answers.injetaveis, vias:answers.vias||'—', equipe:answers.equipe,
+    faturamento_atual:answers.faturamento_atual, objetivo:answers.objetivo,
+    faturamento_meta:answers.faturamento_meta, inicio:answers.inicio, lgpd:'Sim'
+  };
+  const ok=()=>{
+    const f=firstName(); if(f) document.getElementById('doneMsg').textContent=`Obrigada, ${f}! A equipe da Dra. Maria Cláudia Rosenbaum vai analisar suas respostas e entrará em contato pelo WhatsApp informado.`;
+    show(steps.length-1,1);
+  };
+  const fail=()=>{
+    enviando=false; btn.disabled=false; btn.innerHTML='Enviar aplicação '+ICON_ARROW;
+    setErr(s,'Não foi possível enviar agora. Verifique sua conexão e tente novamente.');
+  };
+  if(window.google && google.script && google.script.run){
+    google.script.run.withSuccessHandler(ok).withFailureHandler(fail).salvarAplicacao(payload);
+  } else {
+    fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+      .then(ok).catch(fail);
+  }
+}
+build();
+</script>
+</body>
+</html>
